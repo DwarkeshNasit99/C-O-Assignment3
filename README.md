@@ -58,9 +58,6 @@ kubectl port-forward svc/ngrok 4040:80 -n ngrok
 ### 4. **README.md Accuracy** 
 - Comprehensive documentation
 - Clear step-by-step instructions
-- Project structure documented
-- Management commands provided
-- Security notes included
 
 ## Management Commands
 
