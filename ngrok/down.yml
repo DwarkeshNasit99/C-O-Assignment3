@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  tasks:
+  - name: Delete ngrok namespace and all resources
+    kubernetes.core.k8s:
+      state: absent
+      definition:
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: ngrok
+
+  - name: Display teardown message
+    debug:
+      msg: "Ngrok has been uninstalled" 

@@ -1,0 +1,66 @@
+# Simplified Gitea configuration for development
+# Disables all external dependencies to avoid startup issues
+
+# Disable all external databases and caches
+redis-cluster:
+  enabled: false
+redis:
+  enabled: false
+postgresql:
+  enabled: false
+postgresql-ha:
+  enabled: false
+mysql:
+  enabled: false
+mariadb:
+  enabled: false
+
+# Disable external dependencies
+memcached:
+  enabled: false
+
+# Enable persistence for development mode
+persistence:
+  enabled: true
+  size: 1Gi
+
+# Gitea configuration
+gitea:
+  config:
+    database:
+      DB_TYPE: sqlite3
+    session:
+      PROVIDER: memory
+    cache:
+      ADAPTER: memory
+    queue:
+      TYPE: level
+    server:
+      DOMAIN: localhost
+      ROOT_URL: http://localhost:3000/
+      HTTP_ADDR: 0.0.0.0
+      HTTP_PORT: 3000
+    security:
+      INSTALL_LOCK: false
+    admin:
+      username: testuser
+      password: admin@123
+      email: admin@admin.com
+    repository:
+      ROOT: /data/git/repositories
+    log:
+      LEVEL: Info
+      MODE: console
+
+# Disable any additional components
+signing:
+  enabled: false
+
+# Use minimal resources
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi 

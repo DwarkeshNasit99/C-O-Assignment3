@@ -1,0 +1,18 @@
+---
+- hosts: localhost
+  tasks:
+  - name: Uninstall Gitea production deployment
+    kubernetes.core.helm:
+      name: gitea-prod
+      state: absent
+      release_namespace: default
+
+  - name: Uninstall MySQL database
+    kubernetes.core.helm:
+      name: gitea-mysql
+      state: absent
+      release_namespace: default
+
+  - name: Display teardown message
+    debug:
+      msg: "Production Gitea and MySQL have been uninstalled" 

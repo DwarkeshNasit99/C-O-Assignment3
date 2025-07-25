@@ -1,0 +1,35 @@
+redis-cluster:
+  enabled: false
+redis:
+  enabled: false
+postgresql:
+  enabled: false
+postgresql-ha:
+  enabled: false
+
+# Enable persistence for development mode
+persistence:
+  enabled: true
+  size: 1Gi
+
+gitea:
+  config:
+    database:
+      DB_TYPE: sqlite3
+    session:
+      PROVIDER: memory
+    cache:
+      ADAPTER: memory
+    queue:
+      TYPE: level
+    server:
+      DOMAIN: localhost
+      ROOT_URL: http://localhost:3000/
+      HTTP_ADDR: 0.0.0.0
+      HTTP_PORT: 3000
+    security:
+      INSTALL_LOCK: false
+    admin:
+      username: testuser
+      password: admin@123
+      email: admin@admin.com

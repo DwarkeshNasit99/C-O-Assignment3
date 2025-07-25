@@ -1,0 +1,108 @@
+---
+- hosts: localhost
+  tasks:
+  - name: Create ngrok namespace
+    kubernetes.core.k8s:
+      state: present
+      definition:
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: ngrok
+
+  - name: Create ngrok ConfigMap
+    kubernetes.core.k8s:
+      state: present
+      definition:
+        apiVersion: v1
+        kind: ConfigMap
+        metadata:
+          name: ngrok-config
+          namespace: ngrok
+        data:
+          ngrok.yml: |
+            version: "2"
+            authtoken: "YOUR_NGROK_AUTH_TOKEN"
+            tunnels:
+              gitea:
+                proto: http
+                addr: gitea-http.default.svc.cluster.local:3000
+                inspect: false
+
+  - name: Deploy ngrok deployment
+    kubernetes.core.k8s:
+      state: present
+      definition:
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: ngrok
+          namespace: ngrok
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: ngrok
+          template:
+            metadata:
+              labels:
+                app: ngrok
+            spec:
+              containers:
+              - name: ngrok
+                image: ngrok/ngrok:latest
+                command: ["ngrok"]
+                args: ["start", "--config", "/etc/ngrok/ngrok.yml", "gitea"]
+                ports:
+                - containerPort: 4040
+                volumeMounts:
+                - name: ngrok-config
+                  mountPath: /etc/ngrok
+              volumes:
+              - name: ngrok-config
+                configMap:
+                  name: ngrok-config
+
+  - name: Create ngrok service
+    kubernetes.core.k8s:
+      state: present
+      definition:
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: ngrok
+          namespace: ngrok
+        spec:
+          selector:
+            app: ngrok
+          ports:
+          - name: http
+            port: 80
+            targetPort: 4040
+          type: LoadBalancer
+
+  - name: Wait for ngrok to be ready
+    kubernetes.core.k8s_wait:
+      kind: Pod
+      namespace: ngrok
+      label_selectors:
+        - app=ngrok
+      condition: Ready
+      timeout: 300
+
+  - name: Display ngrok setup instructions
+    debug:
+      msg: |
+        Ngrok has been deployed!
+        
+        To get your public URL:
+        1. Get your ngrok auth token from https://dashboard.ngrok.com/get-started/your-authtoken
+        2. Update the ConfigMap with your auth token:
+           kubectl edit configmap ngrok-config -n ngrok
+        3. Restart the ngrok pod:
+           kubectl rollout restart deployment ngrok -n ngrok
+        4. Check the ngrok web interface:
+           kubectl port-forward svc/ngrok 4040:80 -n ngrok
+        5. Visit http://localhost:4040 to see your public URL
+        
+        Your Gitea will be available at: https://your-domain.ngrok-free.app 

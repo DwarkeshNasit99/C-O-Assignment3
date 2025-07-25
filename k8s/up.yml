@@ -1,0 +1,26 @@
+---
+- hosts: localhost
+  tasks:
+  - name: Check if kubectl is available
+    command: kubectl version --client
+    register: kubectl_version
+    failed_when: false
+
+  - name: Fail if kubectl is not available
+    fail:
+      msg: "kubectl is not available. Please install kubectl first."
+    when: kubectl_version.rc != 0
+
+  - name: Check if Kubernetes cluster is accessible
+    command: kubectl cluster-info
+    register: cluster_info
+    failed_when: false
+
+  - name: Fail if Kubernetes cluster is not accessible
+    fail:
+      msg: "Kubernetes cluster is not accessible. Please ensure you have a running cluster (Docker Desktop, Minikube, or cloud cluster)."
+    when: cluster_info.rc != 0
+
+  - name: Display cluster info
+    debug:
+      msg: "Kubernetes cluster is ready" 

@@ -1,0 +1,55 @@
+---
+- hosts: localhost
+  tasks:
+  - name: Add gitea chart repo
+    kubernetes.core.helm_repository:
+      name: gitea-charts
+      repo_url: "https://dl.gitea.com/charts/"
+
+  - name: Add bitnami chart repo for MySQL
+    kubernetes.core.helm_repository:
+      name: bitnami
+      repo_url: "https://charts.bitnami.com/bitnami"
+
+  - name: Deploy MySQL database
+    kubernetes.core.helm:
+      name: gitea-mysql
+      chart_ref: bitnami/mysql
+      release_namespace: default
+      values:
+        auth:
+          rootPassword: "gitea_root_password"
+          database: "gitea"
+          username: "gitea"
+          password: "gitea_password"
+        primary:
+          persistence:
+            enabled: true
+            size: 8Gi
+
+  - name: Wait for MySQL to be ready
+    kubernetes.core.k8s_info:
+      kind: Pod
+      namespace: default
+      label_selectors:
+        - app.kubernetes.io/name=mysql
+        - app.kubernetes.io/instance=gitea-mysql
+    register: mysql_pods
+
+  - name: Wait for MySQL pod to be running
+    kubernetes.core.k8s_wait:
+      kind: Pod
+      namespace: default
+      label_selectors:
+        - app.kubernetes.io/name=mysql
+        - app.kubernetes.io/instance=gitea-mysql
+      condition: Ready
+      timeout: 300
+
+  - name: Deploy Gitea with external database
+    kubernetes.core.helm:
+      name: gitea-prod
+      chart_ref: gitea-charts/gitea
+      release_namespace: default
+      values_files:
+      - values.yaml 

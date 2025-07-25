@@ -1,0 +1,6 @@
+---
+- hosts: localhost
+  tasks:
+  - name: Display teardown message
+    debug:
+      msg: "Kubernetes cluster cleanup completed" 
